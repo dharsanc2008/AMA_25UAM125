@@ -18,6 +18,9 @@ void textFile(FILE *readPtr);
 void updateRecord(FILE *fPtr);
 void newRecord(FILE *fPtr);
 void deleteRecord(FILE *fPtr);
+void viewAccount(FILE *fPtr);
+void displayAllAccounts(FILE *fPtr);
+void displayAccountStatistics(FILE *fPtr);
 
 int main(int argc, char *argv[])
 {
@@ -32,7 +35,7 @@ int main(int argc, char *argv[])
     }
 
     // enable user to specify action
-    while ((choice = enterChoice()) != 5)
+    while ((choice = enterChoice()) != 8)
     {
         switch (choice)
         {
@@ -51,6 +54,18 @@ int main(int argc, char *argv[])
         // delete existing record
         case 4:
             deleteRecord(cfPtr);
+            break;
+        // view account details
+        case 5:
+            viewAccount(cfPtr);
+            break;
+        // display all accounts
+        case 6:
+            displayAllAccounts(cfPtr);
+            break;
+        // display account statistics
+        case 7:
+            displayAccountStatistics(cfPtr);
             break;
         // display if user does not select valid choice
         default:
@@ -132,7 +147,7 @@ void updateRecord(FILE *fPtr)
         // move file pointer to correct record in file
         // move back by 1 record length
         fseek(fPtr, -sizeof(struct clientData), SEEK_CUR);
-        // write updated record over old record in file
+        // write updated record over old record in filez
         fwrite(&client, sizeof(struct clientData), 1, fPtr);
     } // end else
 } // end function updateRecord
@@ -200,7 +215,89 @@ void newRecord(FILE *fPtr)
     } // end else
 } // end function newRecord
 
-// enable user to input menu choice
+// view a specific account by account number
+void viewAccount(FILE *fPtr)
+{
+    struct clientData client = {0, "", "", 0.0};
+    unsigned int accountNum;
+
+    printf("%s", "Enter account number to view ( 1 - 100 ): ");
+    scanf("%d", &accountNum);
+
+    fseek(fPtr, (accountNum - 1) * sizeof(struct clientData), SEEK_SET);
+    fread(&client, sizeof(struct clientData), 1, fPtr);
+
+    if (client.acctNum == 0)
+    {
+        printf("Account #%d has no information.\n", accountNum);
+    }
+    else
+    {
+        printf("\n%-6s%-16s%-11s%10s\n", "Acct", "Last Name", "First Name", "Balance");
+        printf("%-6d%-16s%-11s%10.2f\n\n", client.acctNum, client.lastName, client.firstName, client.balance);
+    }
+} // end function viewAccount
+
+// display all accounts on screen
+void displayAllAccounts(FILE *fPtr)
+{
+    struct clientData client = {0, "", "", 0.0};
+    int count = 0;
+
+    rewind(fPtr);
+    printf("\n%-6s%-16s%-11s%10s\n", "Acct", "Last Name", "First Name", "Balance");
+    printf("%-55s\n", "-------------------------------------------------------");
+
+    while (fread(&client, sizeof(struct clientData), 1, fPtr))
+    {
+        if (client.acctNum != 0)
+        {
+            printf("%-6d%-16s%-11s%10.2f\n", client.acctNum, client.lastName, client.firstName, client.balance);
+            count++;
+        }
+    }
+
+    if (count == 0)
+    {
+        printf("No accounts found.\n");
+    }
+    else
+    {
+        printf("%-55s\n", "-------------------------------------------------------");
+        printf("Total accounts displayed: %d\n\n", count);
+    }
+} // end function displayAllAccounts
+
+// display account statistics
+void displayAccountStatistics(FILE *fPtr)
+{
+    struct clientData client = {0, "", "", 0.0};
+    int totalAccounts = 0;
+    double totalBalance = 0.0;
+
+    rewind(fPtr);
+
+    while (fread(&client, sizeof(struct clientData), 1, fPtr))
+    {
+        if (client.acctNum != 0)
+        {
+            totalAccounts++;
+            totalBalance += client.balance;
+        }
+    }
+
+    printf("\n========== ACCOUNT STATISTICS ==========\n");
+    printf("Total Accounts: %d\n", totalAccounts);
+    printf("Total Balance: $%.2f\n", totalBalance);
+
+    if (totalAccounts > 0)
+    {
+        printf("Average Balance: $%.2f\n", totalBalance / totalAccounts);
+    }
+
+    printf("========================================\n\n");
+} // end function displayAccountStatistics
+
 unsigned int enterChoice(void)
 {
     unsigned int menuChoice; // variable to store user's choice
@@ -211,8 +308,11 @@ unsigned int enterChoice(void)
                  "2 - update an account\n"
                  "3 - add a new account\n"
                  "4 - delete an account\n"
-                 "5 - end program\n? ");
+                 "5 - view account details\n"
+                 "6 - display all accounts\n"
+                 "7 - display account statistics\n"
+                 "8 - end program\n? ");
 
     scanf("%u", &menuChoice); // receive choice from user
     return menuChoice;
-} // end function enterChoice
+} // end THE PROGRAM THHR FNHFN DGAD FHBEDF
